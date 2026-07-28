@@ -1269,6 +1269,9 @@ local DefaultFOV = Camera.FieldOfView
 local SkyboxObject = nil
 local AtmosphereObject = nil
 local TextColored = false
+local LastSkyboxId = nil
+local RGBHue = 0
+local LastTextColor = nil
 
 local function SetSkybox(AssetId)
     if SkyboxObject then
@@ -1357,81 +1360,69 @@ local function ResetTextColor()
     TextColored = false
 end
 
--- FOV Changer - only runs when enabled, no loop waste
-local FOVCameraConnection = nil
-local function SetupFOV()
-    if FOVCameraConnection then FOVCameraConnection:Disconnect() end
-    FOVCameraConnection = RunService.RenderStepped:Connect(function()
-        if Window.Flags["BB/World/FOV/Enabled"] then
-            Camera.FieldOfView = Window.Flags["BB/World/FOV/Value"]
-        end
-    end)
+-- FOV Changer - hook into existing RenderStepConnections
+local OldWorldRender = RenderStepConnections["Camera"]
+RenderStepConnections["Camera"] = function(...)
+    if Window.Flags["BB/World/FOV/Enabled"] then
+        Camera.FieldOfView = Window.Flags["BB/World/FOV/Value"]
+    end
+    return OldWorldRender(...)
 end
-SetupFOV()
 
--- Skybox - event-driven, not polling
-local LastSkyboxId = nil
-local RGBHue = 0
-RunService.RenderStepped:Connect(function()
-    if not Window.Flags["BB/World/Skybox/Enabled"] then
-        if SkyboxObject then ClearSkybox() end
-        return
-    end
+-- Skybox - use HeartbeatConnections
+local OldWorldHeartbeat = HeartbeatConnections["Control"]
+HeartbeatConnections["Control"] = function(Delta, ...)
+    local Args = {OldWorldHeartbeat(Delta, ...)}
 
-    if Window.Flags["BB/World/Skybox/RGB"] then
-        RGBHue = (RGBHue + (Window.Flags["BB/World/Skybox/RGBSpeed"] / 500)) % 1
-        local Color = Color3.fromHSV(RGBHue, 1, 1)
-        if not SkyboxObject or SkyboxObject.SkyboxBk ~= "rbxassetid://0" then
-            ClearSkybox()
-            SkyboxObject = Instance.new("Sky")
-            SkyboxObject.SkyboxBk = "rbxassetid://0"
-            SkyboxObject.SkyboxDn = "rbxassetid://0"
-            SkyboxObject.SkyboxFt = "rbxassetid://0"
-            SkyboxObject.SkyboxLf = "rbxassetid://0"
-            SkyboxObject.SkyboxRt = "rbxassetid://0"
-            SkyboxObject.SkyboxUp = "rbxassetid://0"
-            SkyboxObject.CelestialBodiesShown = false
-            SkyboxObject.StarCount = 0
-            SkyboxObject.SunAngularSize = 0
-            SkyboxObject.MoonAngularSize = 0
-            SkyboxObject.Parent = Lighting
+    if Window.Flags["BB/World/Skybox/Enabled"] then
+        if Window.Flags["BB/World/Skybox/RGB"] then
+            RGBHue = (RGBHue + (Window.Flags["BB/World/Skybox/RGBSpeed"] / 500)) % 1
+            local Color = Color3.fromHSV(RGBHue, 1, 1)
+            if not SkyboxObject or SkyboxObject.SkyboxBk ~= "rbxassetid://0" then
+                ClearSkybox()
+                SkyboxObject = Instance.new("Sky")
+                SkyboxObject.SkyboxBk = "rbxassetid://0"
+                SkyboxObject.SkyboxDn = "rbxassetid://0"
+                SkyboxObject.SkyboxFt = "rbxassetid://0"
+                SkyboxObject.SkyboxLf = "rbxassetid://0"
+                SkyboxObject.SkyboxRt = "rbxassetid://0"
+                SkyboxObject.SkyboxUp = "rbxassetid://0"
+                SkyboxObject.CelestialBodiesShown = false
+                SkyboxObject.StarCount = 0
+                SkyboxObject.SunAngularSize = 0
+                SkyboxObject.MoonAngularSize = 0
+                SkyboxObject.Parent = Lighting
+            end
+            Lighting.Ambient = Color
+            Lighting.OutdoorAmbient = Color
+        else
+            local Current = Window.Flags["BB/World/Skybox/Current"]
+            if Current and Current ~= "" and Current ~= LastSkyboxId then
+                LastSkyboxId = Current
+                SetSkybox(Current)
+            elseif (not Current or Current == "") and SkyboxObject then
+                ClearSkybox()
+                LastSkyboxId = nil
+            end
         end
-        Lighting.Ambient = Color
-        Lighting.OutdoorAmbient = Color
     else
-        local Current = Window.Flags["BB/World/Skybox/Current"]
-        if Current and Current ~= "" and Current ~= LastSkyboxId then
-            LastSkyboxId = Current
-            SetSkybox(Current)
-        elseif (not Current or Current == "") and SkyboxObject then
-            ClearSkybox()
-            LastSkyboxId = nil
+        if SkyboxObject then ClearSkybox() end
+    end
+
+    if Window.Flags["BB/World/TextColor/Enabled"] then
+        local Color = Window.Flags["BB/World/TextColor/Color"][6]
+        if Window.Flags["BB/World/TextColor/Rainbow"] then
+            RGBHue = (RGBHue + (Window.Flags["BB/World/TextColor/RainbowSpeed"] / 500)) % 1
+            Color = Color3.fromHSV(RGBHue, 1, 1)
         end
-    end
-end)
-
--- Text Color - cached, only updates when needed
-local LastTextColor = nil
-RunService.Heartbeat:Connect(function()
-    if not Window.Flags["BB/World/TextColor/Enabled"] then
+        if Color ~= LastTextColor or not TextColored then
+            LastTextColor = Color
+            ApplyTextColor(Color)
+        end
+    else
         if TextColored then ResetTextColor() end
-        return
     end
 
-    local Color = Window.Flags["BB/World/TextColor/Color"][6]
-    if Window.Flags["BB/World/TextColor/Rainbow"] then
-        RGBHue = (RGBHue + (Window.Flags["BB/World/TextColor/RainbowSpeed"] / 500)) % 1
-        Color = Color3.fromHSV(RGBHue, 1, 1)
-    end
-
-    if Color ~= LastTextColor or not TextColored then
-        LastTextColor = Color
-        ApplyTextColor(Color)
-    end
-end)
-
--- Atmosphere - only touch when enabled
-RunService.Heartbeat:Connect(function()
     if Window.Flags["BB/World/Atmosphere/Enabled"] then
         local Atmos = GetAtmosphere()
         local Tint = Window.Flags["BB/World/Atmosphere/Tint"][6]
@@ -1445,7 +1436,9 @@ RunService.Heartbeat:Connect(function()
         AtmosphereObject.Haze = 0
         AtmosphereObject.Glare = 0
     end
-end)
+
+    return unpack(Args)
+end
 
 Workspace.Characters.ChildAdded:Connect(function(Child)
     if Child.Name ~= LocalPlayer.Name then return end
