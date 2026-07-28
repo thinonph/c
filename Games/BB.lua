@@ -353,23 +353,7 @@ local Window = Parvus.Utilities.UI:Window({
         end
     end
 
-    local MyTab = Window:Tab({Name = "My Tab"}) do
-    local Section1 = MyTab:Section({Name = "Section 1", Side = "Left"}) do
-        Section1:Toggle({Name = "Enabled", Flag = "My/Feature/Enabled", Value = false})
-        Section1:Slider({Name = "Speed", Flag = "My/Feature/Speed", Min = 1, Max = 100, Value = 50, Unit = "x"})
-        Section1:Colorpicker({Name = "Color", Flag = "My/Feature/Color", Value = {1, 0, 1, 0, false}})
-    end
-    local Section2 = MyTab:Section({Name = "Section 2", Side = "Right"}) do
-        Section2:Dropdown({Name = "Mode", Flag = "My/Feature/Mode", List = {
-            {Name = "Option A", Mode = "Button", Value = true},
-            {Name = "Option B", Mode = "Button"},
-            {Name = "Option C", Mode = "Button"}
-        }})
-        Section2:Button({Name = "Do Something", Callback = function()
-            print("Button clicked")
-        end})
-    end
-end
+    
 
     local VisualsSection = Parvus.Utilities:ESPSection(Window, "Visuals", "ESP/Player", true, true, true, true, true, false) do
         VisualsSection:Colorpicker({Name = "Ally Color", Flag = "ESP/Player/Ally", Value = {0.3333333432674408, 0.6666666269302368, 1, 0, false}})
