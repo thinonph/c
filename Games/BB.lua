@@ -353,7 +353,7 @@ local Window = Parvus.Utilities.UI:Window({
             FOVSection:Slider({Name = "FOV Value", Flag = "BB/World/FOV/Value", Min = 1, Max = 120, Value = 70, Unit = "deg"})
         end
 
-        local SkyboxSection = WorldTab:Section({Name = "Skybox", Side = "Left"}) do
+         local SkyboxSection = WorldTab:Section({Name = "Skybox", Side = "Left"}) do
             SkyboxSection:Toggle({Name = "Enabled", Flag = "BB/World/Skybox/Enabled", Value = false})
 
             local SkyboxList = {}
@@ -368,12 +368,18 @@ local Window = Parvus.Utilities.UI:Window({
             end
 
             SkyboxSection:Dropdown({Name = "Skybox", Flag = "BB/World/Skybox/Selection", List = SkyboxList})
-            SkyboxSection:Textbox({Name = "Custom Skybox ID", Flag = "BB/World/Skybox/CustomID", Placeholder = "rbxassetid://...",
+            
+            SkyboxSection:Label({Text = "Custom Skybox ID"})
+            SkyboxSection:Textbox({
+                HideName = true,
+                Flag = "BB/World/Skybox/CustomID", 
+                Placeholder = "rbxassetid://...",
                 Callback = function(Text, Entered)
                     if Entered and Text ~= "" then
                         Window.Flags["BB/World/Skybox/Current"] = Text
                     end
-                end})
+                end
+            })
 
             SkyboxSection:Divider({Text = "RGB Skybox"})
             SkyboxSection:Toggle({Name = "RGB Mode", Flag = "BB/World/Skybox/RGB", Value = false})
