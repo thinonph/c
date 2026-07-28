@@ -397,6 +397,9 @@ local Window = Parvus.Utilities.UI:Window({
             AtmosphereSection:Slider({Name = "Glare", Flag = "BB/World/Atmosphere/Glare", Min = 0, Max = 10, Precise = 2, Value = 0})
         end
     end
+    
+        print("World tab created successfully")
+
 
     local MiscTab = Window:Tab({Name = "Miscellaneous"}) do
         local WCSection = MiscTab:Section({Name = "Weapon Customization", Side = "Left"}) do
