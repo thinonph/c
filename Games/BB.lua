@@ -347,13 +347,13 @@ local Window = Parvus.Utilities.UI:Window({
     end
 
     -- WORLD TAB
-    local WorldTab = Window:Tab({Name = "World"}) do
+        local WorldTab = Window:Tab({Name = "World"}) do
         local FOVSection = WorldTab:Section({Name = "FOV Changer", Side = "Left"}) do
             FOVSection:Toggle({Name = "Enabled", Flag = "BB/World/FOV/Enabled", Value = false})
             FOVSection:Slider({Name = "FOV Value", Flag = "BB/World/FOV/Value", Min = 1, Max = 120, Value = 70, Unit = "deg"})
         end
 
-         local SkyboxSection = WorldTab:Section({Name = "Skybox", Side = "Left"}) do
+        local SkyboxSection = WorldTab:Section({Name = "Skybox", Side = "Left"}) do
             SkyboxSection:Toggle({Name = "Enabled", Flag = "BB/World/Skybox/Enabled", Value = false})
 
             local SkyboxList = {}
@@ -361,27 +361,12 @@ local Window = Parvus.Utilities.UI:Window({
                 SkyboxList[#SkyboxList + 1] = {
                     Name = Data[1], Mode = "Button", Value = Index == 1,
                     Callback = function()
-                        Window.Flags["BB/World/Skybox/CustomID"] = ""
                         Window.Flags["BB/World/Skybox/Current"] = Data[2]
                     end
                 }
             end
 
             SkyboxSection:Dropdown({Name = "Skybox", Flag = "BB/World/Skybox/Selection", List = SkyboxList})
-            
-            SkyboxSection:Label({Text = "Custom Skybox ID"})
-            SkyboxSection:Textbox({
-                HideName = true,
-                Flag = "BB/World/Skybox/CustomID", 
-                Placeholder = "rbxassetid://...",
-                Callback = function(Text, Entered)
-                    if Entered and Text ~= "" then
-                        Window.Flags["BB/World/Skybox/Current"] = Text
-                    end
-                end
-            })
-
-            SkyboxSection:Divider({Text = "RGB Skybox"})
             SkyboxSection:Toggle({Name = "RGB Mode", Flag = "BB/World/Skybox/RGB", Value = false})
             SkyboxSection:Slider({Name = "RGB Speed", Flag = "BB/World/Skybox/RGBSpeed", Min = 1, Max = 50, Value = 10, Unit = "x"})
         end
@@ -1281,53 +1266,31 @@ end)
 
 -- WORLD FEATURES
 local DefaultFOV = Camera.FieldOfView
-local SkyboxObjects = {}
-local OriginalSkybox = nil
+local SkyboxObject = nil
 local AtmosphereObject = nil
+local TextColored = false
+
+local function SetSkybox(AssetId)
+    if SkyboxObject then
+        SkyboxObject:Destroy()
+        SkyboxObject = nil
+    end
+    if AssetId == "" or AssetId == nil then return end
+
+    SkyboxObject = Instance.new("Sky")
+    SkyboxObject.SkyboxBk = AssetId
+    SkyboxObject.SkyboxDn = AssetId
+    SkyboxObject.SkyboxFt = AssetId
+    SkyboxObject.SkyboxLf = AssetId
+    SkyboxObject.SkyboxRt = AssetId
+    SkyboxObject.SkyboxUp = AssetId
+    SkyboxObject.Parent = Lighting
+end
 
 local function ClearSkybox()
-    for _, Obj in pairs(SkyboxObjects) do
-        pcall(function() Obj:Destroy() end)
-    end
-    SkyboxObjects = {}
-end
-
-local function ApplySkybox(AssetId)
-    ClearSkybox()
-    if AssetId == "" then return end
-
-    local Sky = Instance.new("Sky")
-    Sky.SkyboxBk = AssetId
-    Sky.SkyboxDn = AssetId
-    Sky.SkyboxFt = AssetId
-    Sky.SkyboxLf = AssetId
-    Sky.SkyboxRt = AssetId
-    Sky.SkyboxUp = AssetId
-    Sky.Parent = Lighting
-    table.insert(SkyboxObjects, Sky)
-end
-
-local function ApplyRGBSkybox(Hue)
-    local Color = Color3.fromHSV(Hue % 1, 1, 1)
-    ClearSkybox()
-
-    local function MakeFace()
-        local Frame = Instance.new("Frame")
-        Frame.BackgroundColor3 = Color
-        Frame.Size = UDim2.new(1, 0, 1, 0)
-        return Frame
-    end
-
-    for _, Face in pairs({"Bk", "Dn", "Ft", "Lf", "Rt", "Up"}) do
-        local Sky = Instance.new("Sky")
-        Sky.SkyboxBk = "rbxassetid://0"
-        Sky.SkyboxDn = "rbxassetid://0"
-        Sky.SkyboxFt = "rbxassetid://0"
-        Sky.SkyboxLf = "rbxassetid://0"
-        Sky.SkyboxRt = "rbxassetid://0"
-        Sky.SkyboxUp = "rbxassetid://0"
-        Sky.Parent = Lighting
-        table.insert(SkyboxObjects, Sky)
+    if SkyboxObject then
+        SkyboxObject:Destroy()
+        SkyboxObject = nil
     end
 end
 
@@ -1335,131 +1298,140 @@ local function GetAtmosphere()
     if not AtmosphereObject then
         AtmosphereObject = Lighting:FindFirstChildOfClass("Atmosphere")
         if not AtmosphereObject then
-                    AtmosphereObject = Instance.new("Atmosphere")
+            AtmosphereObject = Instance.new("Atmosphere")
             AtmosphereObject.Parent = Lighting
         end
     end
     return AtmosphereObject
 end
 
-local function ApplyTextColor(Color)
-    local function RecolorText(Parent)
+local CachedTextElements = {}
+local function CacheTextElements()
+    CachedTextElements = {}
+    local function Scan(Parent)
         for _, Obj in pairs(Parent:GetDescendants()) do
             if Obj:IsA("TextLabel") or Obj:IsA("TextButton") or Obj:IsA("TextBox") then
                 if not Obj:GetAttribute("ParvusRecolored") then
-                    Obj:SetAttribute("ParvusRecolored", true)
-                    Obj:SetAttribute("OriginalColor", Obj.TextColor3)
+                    table.insert(CachedTextElements, Obj)
                 end
-                Obj.TextColor3 = Color
             end
         end
     end
-
     if Window.Flags["BB/World/TextColor/Killfeed"] then
         local Killfeed = PlayerGui:FindFirstChild("Killfeed")
-        if Killfeed then RecolorText(Killfeed) end
+        if Killfeed then Scan(Killfeed) end
     end
-
     if Window.Flags["BB/World/TextColor/HUD"] then
         for _, Gui in pairs(PlayerGui:GetChildren()) do
             if Gui.Name ~= "Killfeed" and Gui:IsA("ScreenGui") then
-                RecolorText(Gui)
+                Scan(Gui)
             end
         end
     end
+end
+
+local function ApplyTextColor(Color)
+    if #CachedTextElements == 0 then CacheTextElements() end
+    for _, Obj in pairs(CachedTextElements) do
+        if Obj.Parent then
+            if not Obj:GetAttribute("ParvusRecolored") then
+                Obj:SetAttribute("ParvusRecolored", true)
+                Obj:SetAttribute("OriginalColor", Obj.TextColor3)
+            end
+            Obj.TextColor3 = Color
+        end
+    end
+    TextColored = true
 end
 
 local function ResetTextColor()
-    local function ResetText(Parent)
-        for _, Obj in pairs(Parent:GetDescendants()) do
-            if Obj:IsA("TextLabel") or Obj:IsA("TextButton") or Obj:IsA("TextBox") then
-                if Obj:GetAttribute("ParvusRecolored") then
-                    local Original = Obj:GetAttribute("OriginalColor")
-                    if Original then
-                        Obj.TextColor3 = Original
-                    end
-                    Obj:SetAttribute("ParvusRecolored", nil)
-                    Obj:SetAttribute("OriginalColor", nil)
-                end
-            end
+    for _, Obj in pairs(CachedTextElements) do
+        if Obj.Parent and Obj:GetAttribute("ParvusRecolored") then
+            local Original = Obj:GetAttribute("OriginalColor")
+            if Original then Obj.TextColor3 = Original end
+            Obj:SetAttribute("ParvusRecolored", nil)
+            Obj:SetAttribute("OriginalColor", nil)
         end
     end
-
-    for _, Gui in pairs(PlayerGui:GetChildren()) do
-        if Gui:IsA("ScreenGui") then
-            ResetText(Gui)
-        end
-    end
+    CachedTextElements = {}
+    TextColored = false
 end
 
--- FOV Changer Loop
-Parvus.Utilities.NewThreadLoop(0, function()
-    if Window.Flags["BB/World/FOV/Enabled"] then
-        Camera.FieldOfView = Window.Flags["BB/World/FOV/Value"]
-    else
-        Camera.FieldOfView = DefaultFOV
-    end
-end)
+-- FOV Changer - only runs when enabled, no loop waste
+local FOVCameraConnection = nil
+local function SetupFOV()
+    if FOVCameraConnection then FOVCameraConnection:Disconnect() end
+    FOVCameraConnection = RunService.RenderStepped:Connect(function()
+        if Window.Flags["BB/World/FOV/Enabled"] then
+            Camera.FieldOfView = Window.Flags["BB/World/FOV/Value"]
+        end
+    end)
+end
+SetupFOV()
 
--- Skybox Loop
+-- Skybox - event-driven, not polling
+local LastSkyboxId = nil
 local RGBHue = 0
-Parvus.Utilities.NewThreadLoop(0, function()
+RunService.RenderStepped:Connect(function()
     if not Window.Flags["BB/World/Skybox/Enabled"] then
-        ClearSkybox()
+        if SkyboxObject then ClearSkybox() end
         return
     end
 
     if Window.Flags["BB/World/Skybox/RGB"] then
-        RGBHue = (RGBHue + (Window.Flags["BB/World/Skybox/RGBSpeed"] / 1000)) % 1
+        RGBHue = (RGBHue + (Window.Flags["BB/World/Skybox/RGBSpeed"] / 500)) % 1
         local Color = Color3.fromHSV(RGBHue, 1, 1)
-        ClearSkybox()
-
-        local Sky = Instance.new("Sky")
-        Sky.SkyboxBk = "rbxassetid://0"
-        Sky.SkyboxDn = "rbxassetid://0"
-        Sky.SkyboxFt = "rbxassetid://0"
-        Sky.SkyboxLf = "rbxassetid://0"
-        Sky.SkyboxRt = "rbxassetid://0"
-        Sky.SkyboxUp = "rbxassetid://0"
-        Sky.CelestialBodiesShown = false
-        Sky.StarCount = 0
-        Sky.SunAngularSize = 0
-        Sky.MoonAngularSize = 0
-        Sky.Parent = Lighting
-        table.insert(SkyboxObjects, Sky)
-
+        if not SkyboxObject or SkyboxObject.SkyboxBk ~= "rbxassetid://0" then
+            ClearSkybox()
+            SkyboxObject = Instance.new("Sky")
+            SkyboxObject.SkyboxBk = "rbxassetid://0"
+            SkyboxObject.SkyboxDn = "rbxassetid://0"
+            SkyboxObject.SkyboxFt = "rbxassetid://0"
+            SkyboxObject.SkyboxLf = "rbxassetid://0"
+            SkyboxObject.SkyboxRt = "rbxassetid://0"
+            SkyboxObject.SkyboxUp = "rbxassetid://0"
+            SkyboxObject.CelestialBodiesShown = false
+            SkyboxObject.StarCount = 0
+            SkyboxObject.SunAngularSize = 0
+            SkyboxObject.MoonAngularSize = 0
+            SkyboxObject.Parent = Lighting
+        end
         Lighting.Ambient = Color
         Lighting.OutdoorAmbient = Color
     else
         local Current = Window.Flags["BB/World/Skybox/Current"]
-        if Current and Current ~= "" then
-            if #SkyboxObjects == 0 or (SkyboxObjects[1] and SkyboxObjects[1].SkyboxBk ~= Current) then
-                ApplySkybox(Current)
-            end
-        else
+        if Current and Current ~= "" and Current ~= LastSkyboxId then
+            LastSkyboxId = Current
+            SetSkybox(Current)
+        elseif (not Current or Current == "") and SkyboxObject then
             ClearSkybox()
+            LastSkyboxId = nil
         end
     end
 end)
 
--- Text Color Loop
-Parvus.Utilities.NewThreadLoop(0, function()
-    if Window.Flags["BB/World/TextColor/Enabled"] then
-        local Color = Window.Flags["BB/World/TextColor/Color"][6]
+-- Text Color - cached, only updates when needed
+local LastTextColor = nil
+RunService.Heartbeat:Connect(function()
+    if not Window.Flags["BB/World/TextColor/Enabled"] then
+        if TextColored then ResetTextColor() end
+        return
+    end
 
-        if Window.Flags["BB/World/TextColor/Rainbow"] then
-            RGBHue = (RGBHue + (Window.Flags["BB/World/TextColor/RainbowSpeed"] / 1000)) % 1
-            Color = Color3.fromHSV(RGBHue, 1, 1)
-        end
+    local Color = Window.Flags["BB/World/TextColor/Color"][6]
+    if Window.Flags["BB/World/TextColor/Rainbow"] then
+        RGBHue = (RGBHue + (Window.Flags["BB/World/TextColor/RainbowSpeed"] / 500)) % 1
+        Color = Color3.fromHSV(RGBHue, 1, 1)
+    end
 
+    if Color ~= LastTextColor or not TextColored then
+        LastTextColor = Color
         ApplyTextColor(Color)
-    else
-        ResetTextColor()
     end
 end)
 
--- Atmosphere Loop
-Parvus.Utilities.NewThreadLoop(0, function()
+-- Atmosphere - only touch when enabled
+RunService.Heartbeat:Connect(function()
     if Window.Flags["BB/World/Atmosphere/Enabled"] then
         local Atmos = GetAtmosphere()
         local Tint = Window.Flags["BB/World/Atmosphere/Tint"][6]
@@ -1468,7 +1440,7 @@ Parvus.Utilities.NewThreadLoop(0, function()
         Atmos.Density = Window.Flags["BB/World/Atmosphere/Density"]
         Atmos.Haze = Window.Flags["BB/World/Atmosphere/Haze"]
         Atmos.Glare = Window.Flags["BB/World/Atmosphere/Glare"]
-    elseif AtmosphereObject then
+    elseif AtmosphereObject and AtmosphereObject.Density > 0 then
         AtmosphereObject.Density = 0
         AtmosphereObject.Haze = 0
         AtmosphereObject.Glare = 0
