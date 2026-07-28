@@ -1,15 +1,30 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
+--local RunService = game:GetService("RunService")
 local PlayerService = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local TeamService = game:GetService("Teams")
-local Lighting = game:GetService("Lighting")
 
 local Camera = Workspace.CurrentCamera
 local LocalPlayer = PlayerService.LocalPlayer
 local PlayerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui")
 local LoadingGui = PlayerGui:WaitForChild("LoadingGui")
 repeat task.wait(0) until not LoadingGui.Enabled
+
+--local PromptLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/AlexR32/Roblox/main/Useful/PromptLibrary.lua"))()
+--[[local Loaded = false
+if game.PlaceVersion > 1407 then
+    PromptLib("Unsupported game version", "You are at risk of getting autoban\nAre you sure you want to load Parvus?", {
+        {Text = "Yes", LayoutOrder = 0, Primary = false, Callback = function() Loaded = true end},
+        {Text = "No", LayoutOrder = 0, Primary = true, Callback = function() end}
+    })
+
+    return
+end]]
+
+--local ReplicatedStorage = game:GetService("ReplicatedStorage")
+--local Tortoiseshell = getupvalue(require(ReplicatedStorage.TS), 2)
+-- // TODO: Get LocalPlayer Character
 
 local SilentAim, Aimbot, Trigger, AutoshootHitbox = nil, false, false, nil
 local ProjectileSpeed, ProjectileGravity, GravityCorrection = 1600, 150, 2
@@ -40,6 +55,7 @@ end
 
 HandleCharacter = getupvalue(HandleCharacter, 6)
 local CharacterHandlers = getupvalue(HandleCharacter, 3)
+--local Events = getupvalue(Tortoiseshell.Network.BindEvent, 1)
 local WeaponConfigs = getupvalue(Tortoiseshell.Items.GetConfig, 3)
 local Characters = getupvalue(Tortoiseshell.Characters.GetCharacter, 1)
 local Projectiles = getupvalue(Tortoiseshell.Projectiles.InitProjectile, 1)
@@ -66,9 +82,11 @@ local HitSounds = {
     {"AR2 Body", "2062015952"},
     {"BB Body", "4645745735"},
     {"BB Kill", "2636743632"},
+
     {"Neverlose", "8726881116"},
     {"Gamesense", "4817809188"},
     {"Baimware", "3124331820"},
+
     {"Steve", "4965083997"},
     {"Skeet", "4753603610"},
     {"Body", "3213738472"},
@@ -106,13 +124,16 @@ local HitSounds = {
     {"Clink", "711751971"},
     {"CoD", "160432334"},
     {"Lazer Beam", "130791043"},
+
     {"Windows XP Error", "160715357"},
     {"Windows XP Ding", "489390072"},
+
     {"HL Med Kit", "4720445506"},
     {"HL Door", "4996094887"},
     {"HL Crowbar", "546410481"},
     {"HL Revolver", "1678424590"},
     {"HL Elevator", "237877850"},
+
     {"TF2 HitSound", "3455144981"},
     {"TF2 Squasher", "3466981613"},
     {"TF2 Retro", "3466984142"},
@@ -131,24 +152,12 @@ local HitSounds = {
 local KnownBodyParts = {
     {"Head", true}, {"Neck", false},
     {"Chest", false}, {"Abdomen", false}, {"Hips", false},
+
     {"RightArm", false}, {"RightForearm", false}, {"RightHand", false},
     {"LeftArm", false}, {"LeftForearm", false}, {"LeftHand", false},
+
     {"RightLeg", false}, {"RightForeleg", false}, {"RightFoot", false},
     {"LeftLeg", false}, {"LeftForeleg", false}, {"LeftFoot", false}
-}
-
-local Skyboxes = {
-    {"Default", ""},
-    {"Purple Nebula", "rbxassetid://159454288"},
-    {"Blue Sky", "rbxassetid://59161516"},
-    {"Space", "rbxassetid://149397684"},
-    {"Night", "rbxassetid://510645155"},
-    {"Sunset", "rbxassetid://264907379"},
-    {"Galaxy", "rbxassetid://145432059"},
-    {"Doom", "rbxassetid://5591328939"},
-    {"Vaporwave", "rbxassetid://1417494643"},
-    {"Twilight", "rbxassetid://264907379"},
-    {"Clouds", "rbxassetid://570557727"}
 }
 
 local Window = Parvus.Utilities.UI:Window({
@@ -264,15 +273,19 @@ local Window = Parvus.Utilities.UI:Window({
             AutoshootSection:Dropdown({Name = "Body Parts", Flag = "BB/Rage/Autoshoot/BodyParts", List = BodyPartsList})
         end
         local WMSection = RageTab:Section({Name = "Weapon Modification", Side = "Left"}) do
+            --WMSection:Toggle({Name = "No Bob", Flag = "BB/NoBob", Value = false})
             WMSection:Toggle({Name = "Auto FireMode", Flag = "BB/AutoFireMode", Value = false})
             WMSection:Toggle({Name = "Recoil Enabled", Flag = "BB/Recoil/Enabled", Value = false})
             WMSection:Slider({Name = "Weapon Shake", Flag = "BB/Recoil/WeaponScale", Min = 0, Max = 100, Value = 0, Unit = "%"})
             WMSection:Slider({Name = "Camera Shake", Flag = "BB/Recoil/CameraScale", Min = 0, Max = 100, Value = 0, Unit = "%"})
             WMSection:Slider({Name = "Recoil Scale", Flag = "BB/Recoil/RecoilScale", Min = 0, Max = 100, Value = 0, Unit = "%"})
             WMSection:Slider({Name = "Bullet Drop", Flag = "BB/Recoil/BulletDrop", Min = 0, Max = 100, Value = 0, Unit = "%"})
+            --WMSection:Slider({Name = "Bob Scale", Flag = "BB/Recoil/BobScale", Min = 0, Max = 100, Value = 0, Unit = "%"})
         end
         local MiscSection = RageTab:Section({Name = "Other", Side = "Left"}) do
             MiscSection:Toggle({Name = "Knife Aura", Flag = "BB/Rage/KnifeAura", Value = false}):Keybind()
+            --MiscSection:Toggle({Name = "Tele-Grenade", Flag = "BB/Rage/TeleGrenade", Value = false}):Keybind()
+            --MiscSection:Toggle({Name = "Auto Grenade", Flag = "BB/Rage/AutoGrenade", Value = false}):Keybind()
             MiscSection:Toggle({Name = "Bullet Tracer", Flag = "BB/BulletTracer/Enabled", Value = false})
             :Colorpicker({Flag = "BB/BulletTracer/Color", Value = {1, 0.75, 1, 0, true}})
             MiscSection:Toggle({Name = "Hitmarker", Flag = "BB/Rage/Hitmarker", Value = true})
@@ -288,6 +301,8 @@ local Window = Parvus.Utilities.UI:Window({
                         SetIdentity(2)
                         if Bool and not CharacterHandlers[LPCharacter] then
                             HandleCharacter(LPCharacter, LocalPlayer)
+                        --[[else
+                            getconnections(LPCharacter.Destroying)[1]:Function()]]
                         end
                     end)
                 end
@@ -337,6 +352,25 @@ local Window = Parvus.Utilities.UI:Window({
             }})
         end
     end
+
+    local MyTab = Window:Tab({Name = "My Tab"}) do
+    local Section1 = MyTab:Section({Name = "Section 1", Side = "Left"}) do
+        Section1:Toggle({Name = "Enabled", Flag = "My/Feature/Enabled", Value = false})
+        Section1:Slider({Name = "Speed", Flag = "My/Feature/Speed", Min = 1, Max = 100, Value = 50, Unit = "x"})
+        Section1:Colorpicker({Name = "Color", Flag = "My/Feature/Color", Value = {1, 0, 1, 0, false}})
+    end
+    local Section2 = MyTab:Section({Name = "Section 2", Side = "Right"}) do
+        Section2:Dropdown({Name = "Mode", Flag = "My/Feature/Mode", List = {
+            {Name = "Option A", Mode = "Button", Value = true},
+            {Name = "Option B", Mode = "Button"},
+            {Name = "Option C", Mode = "Button"}
+        }})
+        Section2:Button({Name = "Do Something", Callback = function()
+            print("Button clicked")
+        end})
+    end
+end
+
     local VisualsSection = Parvus.Utilities:ESPSection(Window, "Visuals", "ESP/Player", true, true, true, true, true, false) do
         VisualsSection:Colorpicker({Name = "Ally Color", Flag = "ESP/Player/Ally", Value = {0.3333333432674408, 0.6666666269302368, 1, 0, false}})
         VisualsSection:Colorpicker({Name = "Enemy Color", Flag = "ESP/Player/Enemy", Value = {1, 0.6666666269302368, 1, 0, false}})
@@ -345,53 +379,6 @@ local Window = Parvus.Utilities.UI:Window({
         VisualsSection:Toggle({Name = "Distance Check", Flag = "ESP/Player/DistanceCheck", Value = false})
         VisualsSection:Slider({Name = "Distance", Flag = "ESP/Player/Distance", Min = 25, Max = 1000, Value = 250, Unit = "studs"})
     end
-
-    -- WORLD TAB
-        local WorldTab = Window:Tab({Name = "World"}) do
-        local FOVSection = WorldTab:Section({Name = "FOV Changer", Side = "Left"}) do
-            FOVSection:Toggle({Name = "Enabled", Flag = "BB/World/FOV/Enabled", Value = false})
-            FOVSection:Slider({Name = "FOV Value", Flag = "BB/World/FOV/Value", Min = 1, Max = 120, Value = 70, Unit = "deg"})
-        end
-
-        local SkyboxSection = WorldTab:Section({Name = "Skybox", Side = "Left"}) do
-            SkyboxSection:Toggle({Name = "Enabled", Flag = "BB/World/Skybox/Enabled", Value = false})
-
-            local SkyboxList = {}
-            for Index, Data in pairs(Skyboxes) do
-                SkyboxList[#SkyboxList + 1] = {
-                    Name = Data[1], Mode = "Button", Value = Index == 1,
-                    Callback = function()
-                        Window.Flags["BB/World/Skybox/Current"] = Data[2]
-                    end
-                }
-            end
-
-            SkyboxSection:Dropdown({Name = "Skybox", Flag = "BB/World/Skybox/Selection", List = SkyboxList})
-            SkyboxSection:Toggle({Name = "RGB Mode", Flag = "BB/World/Skybox/RGB", Value = false})
-            SkyboxSection:Slider({Name = "RGB Speed", Flag = "BB/World/Skybox/RGBSpeed", Min = 1, Max = 50, Value = 10, Unit = "x"})
-        end
-
-        local TextColorSection = WorldTab:Section({Name = "Custom Text", Side = "Right"}) do
-            TextColorSection:Toggle({Name = "Enabled", Flag = "BB/World/TextColor/Enabled", Value = false})
-            TextColorSection:Colorpicker({Name = "Color", Flag = "BB/World/TextColor/Color", Value = {1, 0, 1, 0, false}})
-            TextColorSection:Toggle({Name = "Rainbow", Flag = "BB/World/TextColor/Rainbow", Value = false})
-            TextColorSection:Slider({Name = "Rainbow Speed", Flag = "BB/World/TextColor/RainbowSpeed", Min = 1, Max = 50, Value = 10, Unit = "x"})
-            TextColorSection:Toggle({Name = "Apply to Killfeed", Flag = "BB/World/TextColor/Killfeed", Value = true})
-            TextColorSection:Toggle({Name = "Apply to HUD", Flag = "BB/World/TextColor/HUD", Value = true})
-        end
-
-        local AtmosphereSection = WorldTab:Section({Name = "Atmosphere", Side = "Right"}) do
-            AtmosphereSection:Toggle({Name = "Enabled", Flag = "BB/World/Atmosphere/Enabled", Value = false})
-            AtmosphereSection:Colorpicker({Name = "Tint", Flag = "BB/World/Atmosphere/Tint", Value = {1, 0, 1, 0, false}})
-            AtmosphereSection:Slider({Name = "Density", Flag = "BB/World/Atmosphere/Density", Min = 0, Max = 1, Precise = 2, Value = 0.3})
-            AtmosphereSection:Slider({Name = "Haze", Flag = "BB/World/Atmosphere/Haze", Min = 0, Max = 10, Precise = 2, Value = 2})
-            AtmosphereSection:Slider({Name = "Glare", Flag = "BB/World/Atmosphere/Glare", Min = 0, Max = 10, Precise = 2, Value = 0})
-        end
-    end
-    
-        print("World tab created successfully")
-
-
     local MiscTab = Window:Tab({Name = "Miscellaneous"}) do
         local WCSection = MiscTab:Section({Name = "Weapon Customization", Side = "Left"}) do
             WCSection:Toggle({Name = "Enabled", Flag = "BB/WC/Enabled", Value = false})
@@ -432,6 +419,7 @@ local Window = Parvus.Utilities.UI:Window({
                         Success, Message = pcall(function()
                             return Tortoiseshell.Network:Invoke("Codes", "Redeem", Code)
                         end)
+                        --print(Code, Success, Message)
                     end
 
                     task.wait(0.1)
@@ -520,8 +508,7 @@ local Window = Parvus.Utilities.UI:Window({
                     HitmarkerScript.MedalSound.Volume = 0.8
                     HitmarkerScript.KillSound.Volume = 1
                     HitmarkerScript.KillSound.PlaybackSpeed = 1.5
-                    KillSound = HitmarkerScript.KillSound
-                    KillSound.SoundId = "rbxassetid://2636743632"
+                    HitmarkerScript.KillSound.SoundId = "rbxassetid://2636743632"
                 end
             end})
             KillSoundSection:Slider({Name = "Volume", Flag = "BB/KillSound/Volume", Min = 0, Max = 5, Precise = 1, Value = 1,
@@ -553,12 +540,25 @@ Parvus.Utilities.Drawing.SetupFOV("Trigger", Window.Flags)
 Parvus.Utilities.Drawing.SetupFOV("SilentAim", Window.Flags)
 
 do
+    --[[for Index, Value in pairs(getgc(true)) do
+        if type(Value) ~= "table" then continue end
+        if rawget(Value, "Maid") and rawget(Value, "Payload") and rawget(Value, "Console") and rawget(Value, "Mobile") and rawget(Value, "Math")
+        and rawget(Value, "Timer") and rawget(Value, "Raycast") and rawget(Value, "Network") and rawget(Value, "Input") and rawget(Value, "Players")
+        and rawget(Value, "UI") and rawget(Value, "Camera") and rawget(Value, "Projectiles") and rawget(Value, "Effects") and rawget(Value, "Teams")
+        and rawget(Value, "Damage") and rawget(Value, "Items") and rawget(Value, "Characters") and rawget(Value, "Clothing") and rawget(Value, "Levels")
+        and rawget(Value, "Skins") and rawget(Value, "Charms") and rawget(Value, "Stickers") and rawget(Value, "Profiles") and rawget(Value, "Menu") then
+            if Value.Network.TS then continue end
+            table.clear(Value)
+        end
+    end]]
+
     local OldNamecall = nil
     OldNamecall = hookmetamethod(game, "__namecall", function(Self, A, B, ...)
         if checkcaller() then return OldNamecall(Self, A, B, ...) end
         local Method = getnamecallmethod()
 
         if Method == "FireServer" then
+            --local Args = {...}
             if type(A) == "string"
             and table.find(BanCommands, A) then
                 print("blocked", B) return
@@ -576,12 +576,44 @@ do
 
         return OldNamecall(Self, A, B, ...)
     end)
+    --[[local OldTaskSpawn = nil
+    OldTaskSpawn = hookfunction(getrenv().task.spawn, function(...)
+        if checkcaller() then return OldTaskSpawn(...) end
+
+        local Args = {...}
+        if type(Args[1]) == "function" then
+            local Constants = getconstants(Args[1])
+            if table.find(Constants, "wait")
+            and not (table.find(Constants, "thread error ")
+            or table.find(Constants, "Item_Paintball")
+            or table.find(Constants, 0.5)) then
+                print("blocked wtd crash")
+                --print(repr(Constants))
+                wait(31536000) -- 365 days
+            end
+        end
+
+        return OldTaskSpawn(...)
+    end)]]
 end
 
 local WallCheckParams = RaycastParams.new()
 WallCheckParams.FilterType = Enum.RaycastFilterType.Whitelist
 WallCheckParams.IgnoreWater = true
 
+-- Fly Logic
+--[[local XZ, YPlus, YMinus = Vector3.new(1, 0, 1), Vector3.new(0, 1, 0), Vector3.new(0, -1, 0)
+local function FixUnit(Vector) if Vector.Magnitude == 0 then return Vector3.zero end return Vector.Unit end
+local function FlatCameraVector(CameraCF) return CameraCF.LookVector * XZ, CameraCF.RightVector * XZ end
+local function InputToVelocity() local LookVector, RightVector = FlatCameraVector(Camera.CFrame)
+    local Forward  = UserInputService:IsKeyDown(Enum.KeyCode.W) and LookVector or Vector3.zero
+    local Backward = UserInputService:IsKeyDown(Enum.KeyCode.S) and -LookVector or Vector3.zero
+    local Left     = UserInputService:IsKeyDown(Enum.KeyCode.A) and -RightVector or Vector3.zero
+    local Right    = UserInputService:IsKeyDown(Enum.KeyCode.D) and RightVector or Vector3.zero
+    local Up       = UserInputService:IsKeyDown(Enum.KeyCode.Space) and YPlus or Vector3.zero
+    local Down     = UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) and YMinus or Vector3.zero
+    return FixUnit(Forward + Backward + Left + Right + Up + Down)
+end]]
 local function GetPlayerTeam(Player)
     for Index, Team in pairs(TeamService:GetChildren()) do
         if Team.Players:FindFirstChild(Player.Name) then
@@ -612,6 +644,13 @@ local function SolveTrajectory(Origin, Velocity, Time, Gravity, GravityCorrectio
     Gravity = Vector3.new(0, math.abs(Gravity), 0)
     return Origin + (Velocity * Time) + (Gravity * Time * Time / GravityCorrection)
 end
+--[[local function FindWeaponModel()
+    for Index, Instance in pairs(Workspace:GetChildren()) do
+        if Instance:FindFirstChild("AnimationController") then
+            return Instance
+        end
+    end
+end]]
 local function GetPlayerBody(Player)
     local Character = Characters[Player]
 
@@ -631,6 +670,14 @@ local function GetBodyPart(Body, Name)
         return WeldConstraint.Part0
     end
 end
+--[[local function GetEquippedController()
+    local Controllers = Tortoiseshell.Items:GetControllers()
+    for Weapon, Controller in pairs(Controllers) do
+        if Controller.Equipped then
+            return Controller
+        end
+    end
+end]]
 local function GetEquippedWeapon()
     local Controllers = Tortoiseshell.Items:GetControllers()
     for Weapon, Controller in pairs(Controllers) do
@@ -639,6 +686,15 @@ local function GetEquippedWeapon()
         end
     end
 end
+--[[local function GetGrenade()
+    local Controllers = Tortoiseshell.Items:GetControllers()
+    for Weapon, Controller in pairs(Controllers) do
+        local Config = WeaponConfigs[Weapon]
+        if Config.Category == "Grenade" then
+            return Weapon, Config
+        end
+    end
+end]]
 local function GetAntiAimValue(Value, Mode)
     if Mode == "Random" then
         Value = math.abs(Value)
@@ -718,6 +774,8 @@ local function GetReticlePosition(BodyPart)
     return ReticlePosition + LookVector * Distance
 end
 local function ComputeProjectiles(Config, BodyPart)
+    --local ReticlePosition = Tortoiseshell.Input.Reticle:GetPosition()
+
     local ReticlePosition = GetReticlePosition(BodyPart)
     local LookVector = BodyPart.Position - ReticlePosition
     local RayResult = Raycast(ReticlePosition, LookVector, {BodyPart})
@@ -747,6 +805,9 @@ local function Autoshoot()
         local BodyPart = AutoshootHitbox[3]
         local PlayerCharacter = AutoshootHitbox[2]
         local Player = AutoshootHitbox[1]
+
+        --local Health = Hitbox[2].Health
+        --local HealthValue = Health.Value
 
         if AmmoValue > 0 then
             local FireMode = State.FireMode.Server
@@ -841,6 +902,22 @@ local function KnifeAura()
         end
     end
 end
+--[[local function AutoGrenade()
+    local Weapon, Config = GetEquippedWeapon()
+    local Grenade, GrenadeConfig = GetGrenade()
+    if Weapon and Grenade then
+        local State = Grenade:WaitForChild("State")
+
+        if State.Ammo.Server.Value > 0 then
+            Tortoiseshell.Network:Fire("Item", "Equip", Grenade)
+            Tortoiseshell.Network:Fire("Item_Throwable", "Cook", Grenade)
+            Tortoiseshell.Network:Fire("Item_Throwable", "Throw", Grenade,
+                Camera.CFrame.Position, Camera.CFrame.LookVector
+            ) Tortoiseshell.Network:Fire("Item", "Equip", Weapon)
+            task.wait(GrenadeConfig.Throwable.CookTime)
+        end
+    end
+end]]
 local function GetClosestAllFOV(Enabled,
     VisibilityCheck, DistanceCheck,
     DistanceLimit, Priority, BodyParts
@@ -1034,7 +1111,28 @@ Parvus.Utilities.FixUpValue(Tortoiseshell.Network.Fire, function(Old, Self, ...)
             local ReticlePosition = Tortoiseshell.Input.Reticle:GetPosition()
             Parvus.Utilities.MakeBeam(ReticlePosition, Args[4], Window.Flags["BB/BulletTracer/Color"])
         end
+    --[[elseif Args[2] == "Throw" then
+        if (SilentAim and not Window.Flags["BB/Rage/Autoshoot/Enabled"])
+        and math.random(100) <= Window.Flags["SilentAim/HitChance"] then
+            Args[5] = (SilentAim[3].Position - Camera.CFrame.Position).Unit
+            Tortoiseshell.UI.Events.Hitmarker:Fire(
+            SilentAim[3], SilentAim[3].Position)
+            return Old(Self, unpack(Args))
+        end]]
     elseif Args[2] == "State" then
+        --[[
+        Old(Self, "Character", "State", "Aiming", true)
+        Old(Self, "Character", "State", "Climbing", true)
+        Old(Self, "Character", "State", "Grounded", true)
+        Old(Self, "Character", "State", "InWater", true)
+        Old(Self, "Character", "State", "Sliding", true)
+        Old(Self, "Character", "State", "Sprinting", true)
+        Old(Self, "Character", "State", "SuperSprinting", true)
+        Old(Self, "Character", "State", "Swapping", true)
+        Old(Self, "Character", "State", "Vaulting", true)
+        Old(Self, "Character", "State", "Stance", "Stand") -- "Crouch", "Prone"
+        ]]
+
         if Window.Flags["BB/Rage/Autoshoot/Enabled"] and table.find(DisabledStates, Args[3]) then Args[4] = false end
         if Window.Flags["BB/AntiAim/Enabled"] and Args[3] == "Look" then
             local Pitch = GetAntiAimValue(Window.Flags["BB/AntiAim/Pitch/Value"], Window.Flags["BB/AntiAim/Pitch/Mode"][1])
@@ -1089,6 +1187,22 @@ Parvus.Utilities.FixUpValue(Tortoiseshell.Items.GetAnimator, function(Old, Self,
     return Old(Self, A, B, C, ...)
 end, true)
 
+-- Old Config Mod
+--[[Parvus.Utilities.FixUpValue(Tortoiseshell.Items.GetConfig, function(Old, Self, ...)
+    local Args = {Old(Self, ...)} local Config = Args[1]
+    if Window.Flags["BB/Recoil/Enabled"]
+    and (Config and Config.Recoil and Config.Recoil.Default) then
+        Config.Recoil.Default.WeaponScale =
+        Config.Recoil.Default.WeaponScale * (Window.Flags["BB/Recoil/WeaponScale"] / 100)
+
+        Config.Recoil.Default.CameraScale =
+        Config.Recoil.Default.CameraScale * (Window.Flags["BB/Recoil/CameraScale"] / 100)
+
+        Config.Recoil.Default.RecoilScale =
+        Config.Recoil.Default.RecoilScale * (Window.Flags["BB/Recoil/RecoilScale"] / 100)
+    end return unpack(Args)
+end)]]
+
 RenderStepConnections["Camera"] = function(...)
     if Window.Flags["BB/ThirdPerson/Enabled"] then
         local Args = {OldCamera(...)}
@@ -1105,6 +1219,7 @@ end
 
 RenderStepConnections["FirstPerson"] = function(...)
     if Window.Flags["BB/ThirdPerson/Enabled"] then return end
+    --setupvalue(OldFirstPerson, 9, 0) -- No Bob (shit)
     return OldFirstPerson(...)
 end
 
@@ -1130,6 +1245,25 @@ HeartbeatConnections["Control"] = function(Delta, ...)
 
     return OldControl(Delta, ...)
 end
+
+--[[for Index, Event in pairs(Events) do
+    if Event.Event == "Item_Throwable" then
+        local OldCallback = Event.Callback
+        Event.Callback = function(...)
+            local Args = {...}
+
+            Parvus.Utilities.NewThreadLoop(0, function()
+                if Args[2].Parent == nil then return "break" end
+                if AutoshootHitbox and Window.Flags["BB/Rage/TeleGrenade"] then
+                    print(Args[2].PrimaryPart)
+                    Args[2].PrimaryPart.Position = AutoshootHitbox[3].Position
+                end
+            end)
+
+            return OldCallback(...)
+        end
+    end
+end]]
 
 Parvus.Utilities.NewThreadLoop(0, function()
     if not (Aimbot or Window.Flags["Aimbot/AlwaysEnabled"]) then return end
@@ -1239,6 +1373,7 @@ end)
 Parvus.Utilities.NewThreadLoop(0, function()
     AutoshootHitbox = GetClosestAllFOV(
         Window.Flags["BB/Rage/Autoshoot/Enabled"]
+        --or Window.Flags["BB/Rage/TeleGrenade"]
         or Window.Flags["BB/Rage/KnifeAura"],
         Window.Flags["BB/Rage/Autoshoot/VisibilityCheck"],
         Window.Flags["BB/Rage/Autoshoot/DistanceCheck"],
@@ -1255,6 +1390,10 @@ Parvus.Utilities.NewThreadLoop(0, function()
     if not Window.Flags["BB/Rage/KnifeAura"] then return end
     KnifeAura()
 end)
+--[[Parvus.Utilities.NewThreadLoop(0, function()
+    if not Window.Flags["BB/Rage/AutoGrenade"] then return end
+    AutoGrenade()
+end)]]
 Parvus.Utilities.NewThreadLoop(0, function()
     if not Window.Flags["BB/AntiAim/Enabled"] then return end
 
@@ -1263,182 +1402,6 @@ Parvus.Utilities.NewThreadLoop(0, function()
 
     task.wait(Window.Flags["BB/AntiAim/RefreshRate"])
 end)
-
--- WORLD FEATURES
-local DefaultFOV = Camera.FieldOfView
-local SkyboxObject = nil
-local AtmosphereObject = nil
-local TextColored = false
-local LastSkyboxId = nil
-local RGBHue = 0
-local LastTextColor = nil
-
-local function SetSkybox(AssetId)
-    if SkyboxObject then
-        SkyboxObject:Destroy()
-        SkyboxObject = nil
-    end
-    if AssetId == "" or AssetId == nil then return end
-
-    SkyboxObject = Instance.new("Sky")
-    SkyboxObject.SkyboxBk = AssetId
-    SkyboxObject.SkyboxDn = AssetId
-    SkyboxObject.SkyboxFt = AssetId
-    SkyboxObject.SkyboxLf = AssetId
-    SkyboxObject.SkyboxRt = AssetId
-    SkyboxObject.SkyboxUp = AssetId
-    SkyboxObject.Parent = Lighting
-end
-
-local function ClearSkybox()
-    if SkyboxObject then
-        SkyboxObject:Destroy()
-        SkyboxObject = nil
-    end
-end
-
-local function GetAtmosphere()
-    if not AtmosphereObject then
-        AtmosphereObject = Lighting:FindFirstChildOfClass("Atmosphere")
-        if not AtmosphereObject then
-            AtmosphereObject = Instance.new("Atmosphere")
-            AtmosphereObject.Parent = Lighting
-        end
-    end
-    return AtmosphereObject
-end
-
-local CachedTextElements = {}
-local function CacheTextElements()
-    CachedTextElements = {}
-    local function Scan(Parent)
-        for _, Obj in pairs(Parent:GetDescendants()) do
-            if Obj:IsA("TextLabel") or Obj:IsA("TextButton") or Obj:IsA("TextBox") then
-                if not Obj:GetAttribute("ParvusRecolored") then
-                    table.insert(CachedTextElements, Obj)
-                end
-            end
-        end
-    end
-    if Window.Flags["BB/World/TextColor/Killfeed"] then
-        local Killfeed = PlayerGui:FindFirstChild("Killfeed")
-        if Killfeed then Scan(Killfeed) end
-    end
-    if Window.Flags["BB/World/TextColor/HUD"] then
-        for _, Gui in pairs(PlayerGui:GetChildren()) do
-            if Gui.Name ~= "Killfeed" and Gui:IsA("ScreenGui") then
-                Scan(Gui)
-            end
-        end
-    end
-end
-
-local function ApplyTextColor(Color)
-    if #CachedTextElements == 0 then CacheTextElements() end
-    for _, Obj in pairs(CachedTextElements) do
-        if Obj.Parent then
-            if not Obj:GetAttribute("ParvusRecolored") then
-                Obj:SetAttribute("ParvusRecolored", true)
-                Obj:SetAttribute("OriginalColor", Obj.TextColor3)
-            end
-            Obj.TextColor3 = Color
-        end
-    end
-    TextColored = true
-end
-
-local function ResetTextColor()
-    for _, Obj in pairs(CachedTextElements) do
-        if Obj.Parent and Obj:GetAttribute("ParvusRecolored") then
-            local Original = Obj:GetAttribute("OriginalColor")
-            if Original then Obj.TextColor3 = Original end
-            Obj:SetAttribute("ParvusRecolored", nil)
-            Obj:SetAttribute("OriginalColor", nil)
-        end
-    end
-    CachedTextElements = {}
-    TextColored = false
-end
-
--- FOV Changer - hook into existing RenderStepConnections
-local OldWorldRender = RenderStepConnections["Camera"]
-RenderStepConnections["Camera"] = function(...)
-    if Window.Flags["BB/World/FOV/Enabled"] then
-        Camera.FieldOfView = Window.Flags["BB/World/FOV/Value"]
-    end
-    return OldWorldRender(...)
-end
-
--- Skybox - use HeartbeatConnections
-local OldWorldHeartbeat = HeartbeatConnections["Control"]
-HeartbeatConnections["Control"] = function(Delta, ...)
-    local Args = {OldWorldHeartbeat(Delta, ...)}
-
-    if Window.Flags["BB/World/Skybox/Enabled"] then
-        if Window.Flags["BB/World/Skybox/RGB"] then
-            RGBHue = (RGBHue + (Window.Flags["BB/World/Skybox/RGBSpeed"] / 500)) % 1
-            local Color = Color3.fromHSV(RGBHue, 1, 1)
-            if not SkyboxObject or SkyboxObject.SkyboxBk ~= "rbxassetid://0" then
-                ClearSkybox()
-                SkyboxObject = Instance.new("Sky")
-                SkyboxObject.SkyboxBk = "rbxassetid://0"
-                SkyboxObject.SkyboxDn = "rbxassetid://0"
-                SkyboxObject.SkyboxFt = "rbxassetid://0"
-                SkyboxObject.SkyboxLf = "rbxassetid://0"
-                SkyboxObject.SkyboxRt = "rbxassetid://0"
-                SkyboxObject.SkyboxUp = "rbxassetid://0"
-                SkyboxObject.CelestialBodiesShown = false
-                SkyboxObject.StarCount = 0
-                SkyboxObject.SunAngularSize = 0
-                SkyboxObject.MoonAngularSize = 0
-                SkyboxObject.Parent = Lighting
-            end
-            Lighting.Ambient = Color
-            Lighting.OutdoorAmbient = Color
-        else
-            local Current = Window.Flags["BB/World/Skybox/Current"]
-            if Current and Current ~= "" and Current ~= LastSkyboxId then
-                LastSkyboxId = Current
-                SetSkybox(Current)
-            elseif (not Current or Current == "") and SkyboxObject then
-                ClearSkybox()
-                LastSkyboxId = nil
-            end
-        end
-    else
-        if SkyboxObject then ClearSkybox() end
-    end
-
-    if Window.Flags["BB/World/TextColor/Enabled"] then
-        local Color = Window.Flags["BB/World/TextColor/Color"][6]
-        if Window.Flags["BB/World/TextColor/Rainbow"] then
-            RGBHue = (RGBHue + (Window.Flags["BB/World/TextColor/RainbowSpeed"] / 500)) % 1
-            Color = Color3.fromHSV(RGBHue, 1, 1)
-        end
-        if Color ~= LastTextColor or not TextColored then
-            LastTextColor = Color
-            ApplyTextColor(Color)
-        end
-    else
-        if TextColored then ResetTextColor() end
-    end
-
-    if Window.Flags["BB/World/Atmosphere/Enabled"] then
-        local Atmos = GetAtmosphere()
-        local Tint = Window.Flags["BB/World/Atmosphere/Tint"][6]
-        Atmos.Color = Tint
-        Atmos.Decay = Tint
-        Atmos.Density = Window.Flags["BB/World/Atmosphere/Density"]
-        Atmos.Haze = Window.Flags["BB/World/Atmosphere/Haze"]
-        Atmos.Glare = Window.Flags["BB/World/Atmosphere/Glare"]
-    elseif AtmosphereObject and AtmosphereObject.Density > 0 then
-        AtmosphereObject.Density = 0
-        AtmosphereObject.Haze = 0
-        AtmosphereObject.Glare = 0
-    end
-
-    return unpack(Args)
-end
 
 Workspace.Characters.ChildAdded:Connect(function(Child)
     if Child.Name ~= LocalPlayer.Name then return end
@@ -1470,7 +1433,6 @@ end)
 
 Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
     Camera = Workspace.CurrentCamera
-    DefaultFOV = Camera.FieldOfView
 end)
 
 for Index, Player in pairs(PlayerService:GetPlayers()) do
@@ -1482,4 +1444,4 @@ PlayerService.PlayerAdded:Connect(function(Player)
 end)
 PlayerService.PlayerRemoving:Connect(function(Player)
     Parvus.Utilities.Drawing:RemoveESP(Player)
-end)    
+end)
